@@ -1,0 +1,62 @@
+# Neptune 3 Max Klipper Firmware & Image Installation Guide
+
+## Requirements
+- **BigTreeTech Pad7** running a **CB1 Board**
+- **32GiB microSD card**
+- Raspberry Pi Imager
+- Prebuilt image and firmware files from **"BTT Pad7 Neptune 3 Max IMG"** folder
+
+---
+
+## Flashing the Image to BigTreeTech Pad7
+This process installs the custom Klipper environment onto your **BigTreeTech Pad7**.
+
+### Steps:
+1. **Download and Extract Files**  
+   - Locate the **"BTT Pad7 Neptune 3 Max IMG"** folder.
+   - Inside, you'll find the **prebuilt image file**.
+   
+2. **Flash the Image to the SD Card**  
+   - Insert a **32GiB microSD card** into your computer.
+   - Open **Raspberry Pi Imager**.
+   - Click **"Choose OS"** → **"Use Custom"** and select the extracted **image file**.
+   - Click **"Choose Storage"** and select your microSD card.
+   - Click **"Write"** and wait for the process to complete.
+   
+3. **Insert the SD Card into the BigTreeTech Pad7**  
+   - Power off the Pad7.
+   - Insert the flashed SD card into the slot.
+   - Power on the Pad7 and allow it to boot.
+
+---
+
+## Flashing Custom Firmware to Neptune 3 Max
+Once the Pad7 is set up, you need to flash the **custom firmware** to your Neptune 3 Max.
+
+### Steps:
+1. **Locate the Firmware File**  
+   - In the **"BTT Pad7 Neptune 3 Max IMG/Neptune 3 Max Klipper Matched Firmware"** folder, find the firmware file for your printer.
+
+2. **Prepare the SD Card**  
+   - Use a separate **microSD card** (not the Pad7 image card).
+   - Format it as **FAT32**.
+   - Copy the firmware file onto the SD card.
+
+3. **Flash the Firmware to the Printer**  
+   - Power off the **Neptune 3 Max**.
+   - Insert the SD card into the printer’s mainboard slot.
+   - Power on the printer and wait for the firmware to install (LEDs may flash, and the screen may stay blank temporarily).
+   - Once complete, remove the SD card and restart the printer.
+
+---
+
+## Features & Functionality
+Once installed, your Neptune 3 Max will include:
+- **Smart Meshing**: Auto mesh generation based on print size.
+- **Smart Purge & Park**: Adaptive purge and parking.
+- **Manual Bed Tramming**: Assisted bed leveling.
+- **Input Shaper Sensor Support**: Integrated with Pad7.
+- **Vertical Screen Orientation Flip**: Optimized for display.
+
+Your printer is now ready with **Klipper** running on the **BigTreeTech Pad7**! 🚀 Happy printing!
+
