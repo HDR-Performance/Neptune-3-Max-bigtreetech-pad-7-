@@ -3,7 +3,7 @@
 ## Overview
 This guide provides a streamlined process for setting up **Klipper** on the **Neptune 3 Max** using a **BigTreeTech Pad7** running a **CB1 Board**. Follow the steps below to get your printer operational as quickly as possible.
 
-📺 **[Video Demo](#)** | 📥 **[Download Firmware & Image](#)**
+📺 **[Video Demo](https://youtu.be/UdlI_vuTi-M?si=Z9LdoJaeeINt7K3I)** | 📅 **[Download Firmware & Image](https://drive.google.com/file/d/19y-u2FZLnrp75wtmCZ5ghx54I5JyGgBy/view?usp=drive_link)**
 
 ---
 
@@ -64,6 +64,28 @@ Once installed, your Neptune 3 Max will include:
 - **Manual Bed Tramming**: Assisted bed leveling.
 - **Input Shaper Sensor Support**: Integrated with Pad7.
 - **Vertical Screen Orientation Flip**: Optimized for display.
+
+---
+
+## Things Working & Not Working
+### ✅ Things Working:
+- **KAMP Functions**
+- **Smart Meshing**
+- **Smart Purge**
+- **Camp**
+- **Auto Overhead LED (On During Print, Off After Print)**
+- **Pause Function**
+- **Filament Runout Sensor Operation**
+- **Manual Bed Tramming**
+- **Manual Z Offset Check**
+- **Cancel Print Function**
+- **Input Shaping with BigTreeTech Input Shaper (Included with Pad7)**
+- **Vertical Screen Orientation**
+- **Mainsail File Uploads**
+- **Webcam Support**
+
+### ⚠️ Things Not Fully Working:
+- **Time Lapse Feature (Work in Progress)**
 
 ---
 
