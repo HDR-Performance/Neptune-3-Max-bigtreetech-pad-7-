@@ -1,0 +1,81 @@
+Purpose: Enhance CANCEL_PRINT macro to park the toolhead like PAUSE and shut down all systems like END_PRINT.
+
+Changes:
+Modified [gcode_macro CANCEL_PRINT]
+Location: Updated within existing printer.cfg between [gcode_macro START_PRINT] and [gcode_macro PAUSE].
+Original Code:
+ini
+
+Collapse
+
+Wrap
+
+Copy
+[gcode_macro CANCEL_PRINT]
+description: Cancels the print and stops the toolhead in its current position
+gcode:
+    M117 Cancelling print
+    M104 S0                    ; Turn off extruder heater
+    M140 S0                    ; Turn off bed heater
+    SET_LED LED=LED_Light WHITE=0 SYNC=0 TRANSMIT=1  ; Turn off LED
+    M84                        ; Disable all steppers
+    BED_MESH_CLEAR             ; Clear adaptive mesh
+    CLEAR_PAUSE                ; Clear any pause state
+    SDCARD_RESET_FILE          ; Reset SD print file (if using SD)
+    M117 Print cancelled
+Updated Code:
+ini
+
+Collapse
+
+Wrap
+
+Copy
+[gcode_macro CANCEL_PRINT]
+description: Cancels the print, parks the toolhead like PAUSE, and shuts down like END_PRINT
+gcode:
+    M117 Cancelling print
+    # Park the toolhead like PAUSE
+    {% set x_park = printer.toolhead.axis_maximum.x|float - 5.0 %}
+    {% set y_park = printer.toolhead.axis_maximum.y|float - 5.0 %}
+    {% set max_z = printer.toolhead.axis_maximum.z|float %}
+    {% set act_z = printer.toolhead.position.z|float %}
+    {% if act_z < (max_z - 2.0) %}
+        {% set z_safe = 2.0 %}
+    {% else %}
+        {% set z_safe = max_z - act_z %}
+    {% endif %}
+    G91  ; Relative positioning
+    {% if "xyz" in printer.toolhead.homed_axes %}
+        G1 Z{z_safe} F900  ; Lift Z like PAUSE
+        G90  ; Absolute positioning
+        G1 X{x_park} Y{y_park} F6000  ; Move to park position like PAUSE
+    {% else %}
+        {action_respond_info("Printer not homed, skipping park")}
+    {% endif %}
+    # Shut down like END_PRINT
+    M104 S0  ; Turn off extruder heater
+    M140 S0  ; Turn off bed heater
+    M106 S0  ; Turn off fan
+    SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1  ; Turn off LED
+    M84      ; Disable motors
+    BED_MESH_CLEAR  ; Clear adaptive mesh
+    CLEAR_PAUSE     ; Clear any pause state
+    SDCARD_RESET_FILE  ; Reset SD print file (if using SD)
+    M117 Print cancelled
+Purpose:
+Added parking logic from PAUSE to lift the Z-axis by 2mm (or to max Z if closer) and move the toolhead to X425 Y425 (5mm from max X/Y of 430), ensuring it clears the print safely.
+Enhanced shutdown sequence by explicitly adding M106 S0 to turn off the part-cooling fan, aligning with END_PRINT’s full shutdown (heaters, fan, LEDs, motors).
+Retained original cleanup commands (BED_MESH_CLEAR, CLEAR_PAUSE, SDCARD_RESET_FILE) for consistency.
+Notes:
+Affected Component: [gcode_macro CANCEL_PRINT] controlling print cancellation behavior.
+Behavior Before Change: Stopped the toolhead in place, turned off heaters and LEDs, disabled steppers, and performed cleanup, but did not move the toolhead to a safe position or explicitly shut off the fan.
+Behavior After Change:
+Parks the toolhead at X425 Y425 with a 2mm Z lift (if homed), matching PAUSE behavior.
+Fully shuts down extruder heater, bed heater, fan, LEDs, and motors, consistent with END_PRINT.
+Maintains cleanup of mesh, pause state, and SD card file.
+Usage: Trigger via Mainsail’s cancel button or CANCEL_PRINT command in the console.
+No Other Modifications: All other sections, including recent fan control macros, remain unchanged as per user request.
+Testing Recommendation:
+Start a print and execute CANCEL_PRINT mid-print.
+Confirm the toolhead lifts Z by 2mm and moves to X425 Y425, then verify heaters, fan, LEDs, and motors shut off, with cleanup messages displayed.
