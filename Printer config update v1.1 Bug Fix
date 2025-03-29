@@ -1,0 +1,78 @@
+Changes:
+Added [gcode_macro SET_FAN_SPEED_OVERRIDE]
+Location: Inserted below [fan] section.
+Code:
+ini
+
+Collapse
+
+Wrap
+
+Copy
+[gcode_macro SET_FAN_SPEED_OVERRIDE]
+description: Sets a persistent manual fan speed override
+gcode:
+    {% set SPEED = params.SPEED|default(100)|float %}  ; Speed in percentage (0-100)
+    {% if SPEED >= 0 and SPEED <= 100 %}
+        {% set FAN_SPEED = (SPEED / 100.0) * 255 %}   ; Convert to 0-255 range
+        M106 S{FAN_SPEED|int}                         ; Set fan speed immediately
+        SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED_OVERRIDE VARIABLE=fan_speed VALUE={FAN_SPEED|int}
+        M117 Fan speed override set to {SPEED}%
+    {% else %}
+        M117 Invalid speed! Use 0-100.
+    {% endif %}
+Purpose: Allows manual setting of the part-cooling fan speed (via percentage) that persists over G-code changes. Stores the speed as a variable for later enforcement.
+Added [gcode_macro DISABLE_FAN_OVERRIDE]
+Location: Inserted below [gcode_macro SET_FAN_SPEED_OVERRIDE].
+Code:
+ini
+
+Collapse
+
+Wrap
+
+Copy
+[gcode_macro DISABLE_FAN_OVERRIDE]
+description: Disables the manual fan speed override, returning to G-code control
+gcode:
+    SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED_OVERRIDE VARIABLE=fan_speed VALUE="None"
+    M117 Fan override disabled
+Purpose: Provides a way to disable the manual fan speed override, reverting control to the G-code fan speed settings from the print file.
+Added [gcode_macro M106] (Override of Default M106)
+Location: Inserted below [gcode_macro DISABLE_FAN_OVERRIDE].
+Code:
+ini
+
+Collapse
+
+Wrap
+
+Copy
+[gcode_macro M106]
+description: Override M106 to enforce manual fan speed if set, otherwise use G-code value
+rename_existing: M106_ORIG
+gcode:
+    {% if 'fan_speed' in printer['gcode_macro SET_FAN_SPEED_OVERRIDE'] and printer['gcode_macro SET_FAN_SPEED_OVERRIDE'].fan_speed is not none %}
+        # If override is active, enforce the stored fan speed
+        M106_ORIG S{printer['gcode_macro SET_FAN_SPEED_OVERRIDE'].fan_speed}
+    {% else %}
+        # Otherwise, pass through the G-code or manual command
+        {% set S = params.S|default(255)|int %}
+        M106_ORIG S{S}
+    {% endif %}
+Purpose: Overrides the default M106 command to check for an active manual fan speed override. If set, it enforces the stored speed; otherwise, it allows normal G-code or manual M106 commands to control the fan.
+Notes:
+Affected Component: Part-cooling fan ([fan] on pin PA7).
+Behavior Before Change: Manual fan speed adjustments (e.g., via Mainsail) were temporary and overridden by subsequent M106 commands in the G-code during printing.
+Behavior After Change:
+Default: Fan speed follows G-code as programmed by the slicer.
+Manual Override: Running SET_FAN_SPEED_OVERRIDE SPEED=<value> (e.g., SPEED=50 for 50%) locks the fan speed to that value, overriding G-code until DISABLE_FAN_OVERRIDE is executed or Klipper restarts.
+Usage:
+Set override: Adjust fan speed in Mainsail, then run SET_FAN_SPEED_OVERRIDE SPEED=<percentage> (e.g., SPEED=50).
+Disable override: Run DISABLE_FAN_OVERRIDE to return to G-code control.
+No Other Modifications: All other sections of the config remain unchanged as per user request.
+Testing Recommendation:
+Start a print with variable fan speeds in the G-code.
+Mid-print, adjust the fan speed via Mainsail and run SET_FAN_SPEED_OVERRIDE SPEED=<value> to confirm persistence.
+Run DISABLE_FAN_OVERRIDE to verify reversion to G-code control.
+This changelog provides a clear record of the modifications made to your printer.cfg. You can append it to a separate log file or include it as a comment at the top of your config if desired. Let me know if you’d like it formatted differently!
