@@ -1,39 +1,29 @@
-; Start G-code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
 M117 Initializing print
-
 ; Turn on LED at 90% brightness
 SET_LED LED=LED_Light WHITE=0.90 SYNC=0 TRANSMIT=1
-
-; Set and wait for bed temperature first
-M140 S[first_layer_bed_temperature]        ; Start heating bed
-M190 S[first_layer_bed_temperature]        ; Wait for bed temp to stabilize
-
-; Set and wait for extruder temperature
-M104 S[first_layer_temperature]            ; Start heating extruder
-M109 S[first_layer_temperature]            ; Wait for extruder temp
-
+; Set initial temperature targets
+M140 S[first_layer_bed_temperature] ; Start heating bed
+M104 S[first_layer_temperature] ; Start heating extruder
 ; Home all axes with safety
-G28                                        ; Home X, Y, Z
-G90                                        ; Absolute positioning
-G92 E0                                     ; Reset extruder position
-
+G28 ; Home X, Y, Z
+G90 ; Absolute positioning
+G92 E0 ; Reset extruder position
+; Wait for full temperature
+M190 S[first_layer_bed_temperature] ; Wait for bed temp
+M109 S[first_layer_temperature] ; Wait for extruder temp
 ; KAMP setup and adaptive meshing
-LED_ENABLE=1 FUZZ_ENABLE=0 ADAPTIVE_ENABLE=1
-BED_MESH_CALIBRATE ADAPTIVE=1             ; Adaptive mesh within 33,16 to 397,415
-
+SETUP_KAMP_MESHING DISPLAY_PARAMETERS=1 LED_ENABLE=1 FUZZ_ENABLE=0 ADAPTIVE_ENABLE=1
+BED_MESH_CALIBRATE ADAPTIVE=1 ; Adaptive mesh within 33,16 to 397,415
 ; Move to safe initial position
-G0 X50 Y50 Z10 F12000                     ; Safe spot (X=50, Y=50, Z=10)
-
+G0 X50 Y50 Z10 F12000 ; Safe spot (X=50, Y=50, Z=10)
 ; Smart Park near print area
-SMART_PARK                                ; Park at Z=10 mm near objects
-
+SMART_PARK ; Park at Z=10 mm near objects
 ; Purge filament adaptively
-LINE_PURGE                                ; Purge 30 mm near print area
-
+LINE_PURGE ; Purge 30 mm near print area
 ; Reset and move to safe start position
-G90                                       ; Ensure absolute mode
-G92 E0                                    ; Reset extruder position post-purge
-G0 X210 Y210 Z0.2 F12000                  ; Move to bed center, first layer height
+G90 ; Ensure absolute mode
+G92 E0 ; Reset extruder position post-purge
+G0 X210 Y210 Z0.2 F4800 ; Move to bed center, first layer height
 M117 Printing...
 
 
@@ -62,3 +52,4 @@ SET_LED LED=LED_Light WHITE=0 SYNC=0 TRANSMIT=1
 ; SCREEN_WAKE
 
 M117 Print complete!
+
