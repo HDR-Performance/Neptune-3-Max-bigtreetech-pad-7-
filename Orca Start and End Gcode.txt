@@ -1,4 +1,4 @@
-; Start G-code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
+: Start G-code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
 
 M117 Initializing print
 
@@ -7,7 +7,6 @@ SET_LED LED=LED_Light WHITE=0.90 SYNC=0 TRANSMIT=1
 
 ; Set initial temperature targets
 M140 S[first_layer_bed_temperature] ; Start heating bed
-M104 S[first_layer_temperature] ; Start heating extruder
 
 ; Home all axes with safety
 G28 ; Home X, Y, Z
@@ -16,6 +15,7 @@ G92 E0 ; Reset extruder position
 
 ; Wait for full temperature
 M190 S[first_layer_bed_temperature] ; Wait for bed temp
+M104 S[first_layer_temperature] ; Start heating extruder
 M109 S[first_layer_temperature] ; Wait for extruder temp
 
 ; KAMP setup and adaptive meshing
@@ -36,7 +36,6 @@ G90 ; Ensure absolute mode
 G92 E0 ; Reset extruder position post-purge
 G0 X210 Y210 Z0.2 F4800 ; Move to bed center, first layer height
 M117 Printing...
-
 
 
 ; End G-code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
@@ -63,5 +62,6 @@ SET_LED LED=LED_Light WHITE=0 SYNC=0 TRANSMIT=1
 ; SCREEN_WAKE
 
 M117 Print complete!
+
 
 
