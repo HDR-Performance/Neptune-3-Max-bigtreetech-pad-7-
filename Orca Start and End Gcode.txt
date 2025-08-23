@@ -23,7 +23,7 @@ SETUP_KAMP_MESHING DISPLAY_PARAMETERS=1 LED_ENABLE=1 FUZZ_ENABLE=0 ADAPTIVE_ENAB
 BED_MESH_CALIBRATE ADAPTIVE=1 ; Adaptive mesh within 33,16 to 397,415
 
 ; Move to safe initial position
-G0 X50 Y50 Z10 F12000 ; Safe spot (X=50, Y=50, Z=10)
+G0 X50 Y50 Z10 F4800 ; Safe spot (X=50, Y=50, Z=10)
 
 ; Smart Park near print area
 SMART_PARK ; Park at Z=10 mm near objects
@@ -62,6 +62,7 @@ SET_LED LED=LED_Light WHITE=0 SYNC=0 TRANSMIT=1
 ; SCREEN_WAKE
 
 M117 Print complete!
+
 
 
 
