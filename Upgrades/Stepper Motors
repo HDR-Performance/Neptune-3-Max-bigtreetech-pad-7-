@@ -1,0 +1,75 @@
+If you’re pushing your Elegoo Neptune 3 Max to crank out faster prints on its massive 420x420mm bed, you’ve likely run into layer shifts or skipped steps when you dial up the speed. The stock motors are okay for casual printing, but they can struggle with high accelerations. I’ve got a sweet, budget-friendly upgrade: swap the Y-axis (bed) motor for a beefier one, repurpose the old Y motor for the X-axis, and transfer the belt pulleys to keep everything running smoothly. Here’s the full step-by-step guide, broken down one axis at a time, plus why this rocks.
+
+The Upgrade:
+Y-Axis (Bed) Motor Swap: Replace the stock Y motor with a high-torque NEMA 17 like this iMetrx one (42x60mm, 2.1A, 1.8° step angle, 1m cable). It’s got ~15-25% more power to handle the heavy bed like a champ. Get it here: https://www.amazon.com/dp/B097PD2JW3
+
+Reuse the Old Y Motor for X-Axis: The stock Y motor (likely a 42x48mm or similar) has more torque than the stock X motor (usually a weaker 42x40mm or 42x34mm). Move it to the X-axis for a free gantry upgrade—no extra parts needed.
+
+Wiring Heads-Up for the Y Motor:
+The new iMetrx motor may have a different phase wiring on its 6-pin connector. No worries—just swap wires 3 and 4 (the two center pins). Use a small pick or needle to pry up the lock on one pin at a time. Depin wire 3, then depin wire 4 and insert it into the slot for 3. Take the wire from 3 and pop it into the slot for 4. Check the motor’s label or datasheet to confirm. No soldering needed!
+
+Installation Steps:
+Tools: 2mm and 3mm Allen keys, a small pick or needle for depinning, and maybe zip ties for cable management.
+
+Cost: ~$20-30 for the new Y motor.
+
+Y-Axis Motor and Pulley Swap (Start to End):
+Unplug the Printer: Safety first—power off completely.
+
+Loosen the Y-Axis Belt: Turn the tension knob at the front of the printer (usually on the right side) to give the belt plenty of slack. You want it loose enough to easily slide off the pulley.
+
+Remove the Y-Axis Motor Shield: Unscrew two 2mm bolts from the top and two 3mm bolts from the back of the printer to take off the top shield covering the Y motor.
+
+Access the Motor: Carefully lift and tilt the printer onto its Z gantry (on the ground) to reach the Y motor underneath. It’s easier with a friend, but one person can manage if you’re careful.
+
+Remove the Stock Y Motor: Unplug the stock Y motor’s 6-pin connector. Slide the belt off the pulley. Remove the four 2mm Allen bolts holding the motor to the printer frame.
+
+Remove the Pulley: Loosen the two Allen screws (usually 2mm) on the D-belt gear to remove it from the stock motor’s shaft. Note the pulley’s depth on the shaft (how far it sits from the motor body) for reinstallation.
+
+Prep the New Motor: Swap wires 3 and 4 on the new iMetrx motor’s 6-pin connector. Use a pick or needle to lift the lock on pin 3, remove the wire, and set it aside. Lift the lock on pin 4, remove that wire, and insert it into the slot for pin 3. Insert the wire from pin 3 into the slot for pin 4. Double-check the motor’s datasheet or label to confirm the pinout.
+
+Install the Pulley on the New Motor: Attach the D-belt gear to the new motor’s shaft, matching the same depth as on the stock motor. Tighten the two Allen screws to secure the pulley.
+
+Install the New Motor: Bolt the new iMetrx motor to the printer frame using the four 2mm Allen bolts. Slide the belt back onto the pulley. Plug in the modified 6-pin connector.
+
+Reassemble: Reattach the Y-axis motor shield with the two 2mm bolts on top and two 3mm bolts on the back. Tighten the Y-axis belt using the front tension knob until it’s snug but not overly tight (a slight twang when plucked is good).
+
+Check Your Work: Ensure the belt runs smoothly and the motor is secure. You’re done with the Y-axis!
+
+X-Axis Motor Swap (Start to End):
+Remove the X Endstop: Unscrew the three bolts holding the X endstop (one on the left side of the gantry, one on top, one on bottom, typically 2mm or 3mm—check your printer).
+
+Loosen the X-Axis Belt: Turn the adjustment knob on the left side of the gantry to give the belt plenty of slack, enough to slide it off the pulley.
+
+Remove the Stock X Motor: Unplug the X motor’s connector. Slide the belt off the pulley. Remove the four screws (usually 2mm) attaching the motor to the gantry mount.
+
+Remove the Pulley: Loosen the two Allen screws (typically 2mm) on the D-belt gear to remove it from the stock X motor’s shaft. Note the pulley’s depth on the shaft for reinstallation.
+
+Install the Pulley on the Old Y Motor: Take the old Y motor (from the earlier swap) and attach the D-belt gear to its shaft, matching the same depth as on the stock X motor. Tighten the two Allen screws to secure the pulley.
+
+Install the Old Y Motor: Mount the old Y motor to the gantry using the four screws. Slide the belt back onto the pulley and plug in the motor’s connector. The X-axis is plug-and-play—no firmware changes or repinning needed.
+
+Reassemble: Reattach the X endstop with its three bolts. Tighten the X-axis belt using the left adjustment knob until it’s snug (a slight twang is perfect).
+
+Check Your Work: Ensure the belt runs smoothly, the endstop is secure, and the motor is firmly mounted. X-axis is done!
+
+Calibration: No steps/mm recalibration needed for either axis—both motors use a 1.8° step angle, so it’s all plug-and-play.
+
+Final Touches: Tidy up cables with zip ties for a clean look.
+
+Why This Upgrade Rules:
+Blazing Speeds: The beefy Y motor handles high accelerations (3000-5000 mm/s² or more in Cura/PrusaSlicer) without skipping or wobbling. Say goodbye to ghosting and layer shifts.
+
+Skip-Free Prints: Extra torque on Y manages the bed’s weight, even at 100mm/s+ speeds. I’ve printed full-bed monsters with zero issues.
+
+X-Axis Boost: The old Y motor gives the X gantry better precision and speed for detailed prints.
+
+Quiet and Cool: The new Y motor runs smoother and cooler, with its longer body helping with heat.
+
+Klipper/Marlin Bonus: Pair with input shaper to push crazy speeds while keeping prints crisp.
+
+I’ve tested this on some huge prints (like enclosure parts), and it’s a total game-changer—faster, smoother, and rock-solid. The Y motor wiring swap, pulley transfers, and X motor swap are straightforward and make a massive difference.
+
+Anyone else upgraded their Neptune 3 Max motors? What speeds are you hitting? Got questions? Drop ‘em in the comments!
+
+TL;DR: Swap Y motor for a high-torque one, transfer its pulley, move old Y to X with its pulley. Swap wires 3 and 4 on Y’s 6-pin connector, no calibration needed. Fast, skip-free prints for ~$20-30. Let’s print! 🚀
