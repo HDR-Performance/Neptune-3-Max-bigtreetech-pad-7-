@@ -1,0 +1,618 @@
+# Klipper printer.cfg for Elegoo Neptune 4 Max with BIGTREETECH SKR 3 EY and TMC5160 Pro EZ Drivers
+# Firmware: Compile for STM32H723/H743 with 128KiB bootloader, USB on PA11/PA12.
+# Flash: Rename klipper.bin to firmware.bin, copy to SD card root, power on to update.
+# See docs/Config_Reference.md for a description of parameters.
+
+[mcu]
+serial: /dev/serial/by-id/usb-Klipper_stm32h723xx_3A000F001251333031373138-if00
+restart_method: command
+
+# Include KAMP and other feature configurations
+[include K ascendancy]
+[include timelapse.cfg]
+[include mainsail.cfg]
+[include Line_Purge.cfg]
+[include Smart_Park.cfg]
+[include Adaptive_Meshing.cfg]
+[exclude_object]
+[virtual_sdcard]
+path: ~/gcode_files
+[pause_resume]
+[display_status]
+[gcode_arcs]
+resolution: 0.5
+
+####################################################################
+# Printer Type and Speed/Accel Parameters
+#####################################################################
+[printer]
+kinematics: cartesian
+max_velocity: 500
+max_accel: 5000
+max_accel_to_decel: 3000
+max_z_velocity: 20
+max_z_accel: 300
+square_corner_velocity: 5.0
+
+####################################################################
+# Pi MCU and Accelerometers
+#####################################################################
+[mcu CB1]
+serial: /tmp/klipper_host_mcu
+
+[adxl345]
+cs_pin: CB1:None
+spi_bus: spidev1.1
+spi_speed: 5000000
+axes_map: z,y,-x
+
+[resonance_tester]
+accel_chip: adxl345
+probe_points:
+    215, 215, 20
+accel_per_hz: 50
+max_smoothing: 0.2
+
+[input_shaper]
+shaper_type_x: ei
+shaper_freq_x: 50.0
+shaper_type_y: ei
+shaper_freq_y: 40.2
+
+####################################################################
+# Stepper Motors and Drivers (TMC5160 in SPI mode)
+#####################################################################
+[stepper_x]
+step_pin: PD4
+dir_pin: !PD3
+enable_pin: !PD6
+microsteps: 16
+rotation_distance: 40
+full_steps_per_rotation: 200
+endstop_pin: PC1
+position_min: -7
+position_endstop: -7
+position_max: 430
+homing_speed: 70
+homing_retract_dist: 5.0
+homing_positive_dir: false
+
+[tmc5160 stepper_x]
+cs_pin: PD5
+spi_software_miso_pin: PE15
+spi_software_mosi_pin: PE13
+spi_software_sclk_pin: PE14
+run_current: 1.0
+hold_current: 0.5
+sense_resistor: 0.075
+interpolate: true
+stealthchop_threshold: 999999
+
+[stepper_y]
+step_pin: PA15
+dir_pin: !PA8
+enable_pin: !PD1
+microsteps: 16
+rotation_distance: 40
+full_steps_per_rotation: 200
+endstop_pin: PC3
+position_min: -3
+position_endstop: -3
+position_max: 430
+homing_speed: 40
+homing_retract_dist: 5.0
+homing_positive_dir: false
+
+[tmc5160 stepper_y]
+cs_pin: PD0
+spi_software_miso_pin: PE15
+spi_software_mosi_pin: PE13
+spi_software_sclk_pin: PE14
+run_current: 1.6
+hold_current: 0.7
+sense_resistor: 0.075
+interpolate: true
+stealthchop_threshold: 999999
+
+[stepper_z]
+step_pin: PE2
+dir_pin: PE3
+enable_pin: !PE0
+microsteps: 16
+rotation_distance: 8
+full_steps_per_rotation: 200
+endstop_pin: probe:z_virtual_endstop
+position_max: 505
+position_min: -5
+homing_speed: 10
+homing_retract_speed: 15
+
+[tmc5160 stepper_z]
+cs_pin: PE1
+spi_software_miso_pin: PE15
+spi_software_mosi_pin: PE13
+spi_software_sclk_pin: PE14
+run_current: 0.8
+hold_current: 0.5
+sense_resistor: 0.075
+interpolate: true
+stealthchop_threshold: 999999
+
+[extruder]
+step_pin: PD15
+dir_pin: !PD14
+enable_pin: !PC7
+microsteps: 16
+rotation_distance: 31.4
+gear_ratio: 52:10
+full_steps_per_rotation: 200
+nozzle_diameter: 0.400
+filament_diameter: 1.750
+min_temp: 0
+max_temp: 330
+heater_pin: PB3
+sensor_type: NTC 100K MGB18-104F39050L32
+sensor_pin: PA2
+max_power: 1
+control: pid
+pid_kp: 32.771
+pid_ki: 3.361
+pid_kd: 79.880
+pressure_advance: 0.056
+pressure_advance_smooth_time: 0.04
+max_extrude_cross_section: 10
+max_extrude_only_distance: 100
+max_extrude_only_velocity: 300
+max_extrude_only_accel: 1000
+
+[tmc5160 extruder]
+cs_pin: PC6
+spi_software_miso_pin: PE15
+spi_software_mosi_pin: PE13
+spiევ
+spi_software_sclk_pin: PE14
+run_current: 0.8
+hold_current: 0.4
+sense_resistor: 0.075
+interpolate: true
+stealthchop_threshold: 999999
+
+[verify_heater extruder]
+max_error: 120
+check_gain_time: 25
+hysteresis: 5
+heating_gain: 2
+
+[firmware_retraction]
+retract_length: 0.5
+retract_speed: 35
+unretract_extra_length: 0
+unretract_speed: 35
+
+####################################################################
+# Heated Bed
+#####################################################################
+[heater_bed]
+heater_pin: PD7
+sensor_type: NTC 100K MGB18-104F39050L32
+sensor_pin: PA1
+max_power: 1.0
+control: pid
+pid_kp: 71.562
+pid_ki: 0.778
+pid_kd: 1645.031
+min_temp: 0
+max_temp: 110
+
+[verify_heater heater_bed]
+max_error: 120
+check_gain_time: 360
+hysteresis: 10
+heating_gain: 2
+
+####################################################################
+# Fans
+#####################################################################
+[heater_fan fan1]
+pin: PB5
+heater: extruder
+heater_temp: 50.0
+
+[fan]
+pin: PB6
+
+[fan_generic fan3]
+pin: PB7
+[fan_generic fan4]
+pin: PA8
+[fan_generic fan5]
+pin: PA15
+
+#####################################################################
+# Probe
+#####################################################################
+[probe]
+pin: ^PC0
+x_offset: -24.25
+y_offset: 20.45
+z_offset: 1.00
+speed: 15
+lift_speed: 40
+samples: 3
+samples_result: median
+sample_retract_dist: 3.0
+samples_tolerance: 0.05
+samples_tolerance_retries: 1
+
+####################################################################
+# Bed Meshing
+#####################################################################
+[bed_mesh]
+speed: 350
+horizontal_move_z: 10
+mesh_min: 10, 21
+mesh_max: 397, 404
+probe_count: 11, 9
+algorithm: bicubic
+bicubic_tension: 0.2
+mesh_pps: 4, 4
+fade_start: 1.0
+fade_end: 10.0
+
+#####################################################################
+# LED Control
+#####################################################################
+[led LED_Light]
+white_pin: PB9
+shutdown_speed: 1.0
+cycle_time: 0.010
+
+[gcode_macro LED_FRAME_ON]
+description: Turn on the Frame LEDs
+gcode:
+  SET_LED LED=LED_Light WHITE=0.25 SYNC=0 TRANSMIT=1
+
+[gcode_macro LED_FRAME_OFF]
+description: Turn off the Frame LEDs
+gcode:
+  SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1
+
+[gcode_macro LED_NOZZLE_ON]
+description: Turn on the Nozzle LED
+gcode:
+  SET_LED LED=LED_Light WHITE=0.25 SYNC=0 TRANSMIT=1
+
+[gcode_macro LED_NOZZLE_OFF]
+description: Turn off the Nozzle LED
+gcode:
+  SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1
+
+#####################################################################
+# Filament Sensor
+#####################################################################
+[filament_switch_sensor filament_sensor]
+pause_on_runout: true
+switch_pin: PC2
+pause_delay: 0.5
+event_delay: 3.0
+
+#####################################################################
+# Homing System
+#####################################################################
+[homing_override]
+gcode:
+  G28 X Y
+  G90
+  G0 X215 Y215 F6000
+  G28 Z
+  G91
+  G0 Z10 F900
+  G90
+set_position_z: 0
+
+#####################################################################
+# Screws Tilt Adjust
+#####################################################################
+[screws_tilt_adjust]
+screw1: 62, 15
+screw1_name: Front Left screw
+screw2: 62, 192
+screw2_name: Middle Left screw
+screw3: 62, 370
+screw3_name: Rear Left screw
+screw4: 422, 370
+screw4_name: Rear Right screw
+screw5: 422, 192
+screw5_name: Middle Right screw
+screw6: 422, 15
+screw6_name: Front Right screw
+horizontal_move_z: 10.0
+speed: 200
+screw_thread: CW-M3
+
+#####################################################################
+# Macros
+#####################################################################
+[gcode_macro START_PRINT]
+gcode:
+  SET_LED LED=LED_Light WHITE=0.25 SYNC=0 TRANSMIT=1
+  {% set BED_TEMP = params.BED_TEMP|default(60)|float %}
+  {% set EXTRUDER_TEMP = params.EXTRUDER_TEMP|default(200)|float %}
+  M140 S{BED_TEMP}
+  M104 S{EXTRUDER_TEMP}
+  G28
+  M190 S{BED_TEMP}
+  M109 S{EXTRUDER_TEMP}
+  SETUP_KAMP_MESHING DISPLAY_PARAMETERS=1 LED_ENABLE=1 FUZZ_ENABLE=0 ADAPTIVE_ENABLE=1
+  BED_MESH_CALIBRATE ADAPTIVE=1
+  Smart_Park
+  LINE_PURGE
+
+[gcode_macro CANCEL_PRINT]
+description: Cancels the print, parks the toolhead, and shuts down
+gcode:
+  M117 Cancelling print
+  {% set x_park = printer.toolhead.axis_maximum.x|float - 5.0 %}
+  {% set y_park = printer.toolhead.axis_maximum.y|float - 5.0 %}
+  {% set max_z = printer.toolhead.axis_maximum.z|float %}
+  {% set act_z = printer.toolhead.position.z|float %}
+  {% if act_z < (max_z - 2.0) %}
+    {% set z_safe = 2.0 %}
+  {% else %}
+    {% set z_safe = max_z - actukebox %}
+  {% endif %}
+  G91
+  {% if "xyz" in printer.toolhead.homed_axes %}
+    G1 Z{z_safe} F900
+    G90
+    G1 X{x_park} Y{y_park} F6000
+  {% else %}
+    {action_respond_info("Printer not homed, skipping park")}
+  {% endif %}
+  M104 S0
+  M140 S0
+  M106 S0
+  SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE="False"
+  SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1
+  M84
+  BED_MESH_CLEAR
+  CLEAR_PAUSE
+  SDCARD_RESET_FILE
+  M117 Print cancelled
+
+[gcode_macro PAUSE]
+description: Pause the actual running print
+rename_existing: PAUSE_BASE
+variable_extrude: 1.0
+gcode:
+  {% set E = printer["gcode_macro PAUSE"].extrude|float %}
+  {% set x_park = printer.toolhead.axis_maximum.x|float - 5.0 %}
+  {% set y_park = printer.toolhead.axis_maximum.y|float - 5.0 %}
+  {% set max_z = printer.toolhead.axis_maximum.z|float %}
+  {% set act_z = printer.toolhead.position.z|float %}
+  {% if act_z < (max_z - 2.0) %}
+    {% set z_safe = 2.0 %}
+  {% else %}
+    {% set z_safe = max_z - act_z %}
+  {% endif %}
+  PAUSE_BASE
+  G91
+  {% if printer.extruder.can_extrude|lower == 'true' %}
+    G1 E-{E} F2100
+  {% else %}
+    {action_respond_info("Extruder not hot enough")}
+  {% endif %}
+  {% if "xyz" in printer.toolhead.homed_axes %}
+    G1 Z{z_safe} F900
+    G90
+    G1 X{x_park} Y{y_park} F6000
+  {% else %}
+    {action_respond_info("Printer not homed")}
+  {% endif %}
+
+[gcode_macro RESUME]
+description: Resume the actual running print
+rename_existing: RESUME_BASE
+gcode:
+  {% set E = printer["gcode_macro PAUSE"].extrude|float %}
+  {% if 'VELOCITY' in params|upper %}
+    {% set get_params = ('VELOCITY=' + params.VELOCITY) %}
+  {% else %}
+    {% set get_params = "" %}
+  {% endif %}
+  {% if printer.extruder.can_extrude|lower == 'true' %}
+    G91
+    G1 E{E} F2100
+  {% else %}
+    {action_respond_info("Extruder not hot enough")}
+  {% endif %}
+  RESUME_BASE {get_params}
+
+[gcode_macro END_PRINT]
+gcode:
+  M104 S0
+  M140 S0
+  M106 S0
+  SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE="False"
+  G91
+  G1 Z10 F300
+  G90
+  G1 Y230 F3000
+  SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1
+  M84
+
+[gcode_macro MANUAL_BED_TRAMMING]
+description: Home and measure for manual leveling adjustments
+gcode:
+  G28
+  SCREWS_TILT_CALCULATE
+  G90
+  G1 F3000 X215 Y215 Z25
+
+[gcode_macro MANUAL_Z_OFFSET_ADJUST]
+description: Manually adjust Z offset
+gcode:
+  {% set current_z_offset = printer.configfile.config.probe.z_offset | float | default(0.0) %}
+  {% set center_x = printer.toolhead.axis_maximum.x / 2 | float %}
+  {% set center_y = printer.toolhead.axis_maximum.y / 2 | float %}
+  {% set travel_speed = printer.toolhead.max_velocity * 60 | float %}
+  {action_respond_info("Current Z offset: %.3f mm" % current_z_offset)}
+  G28
+  {action_respond_info("Printer homed.")}
+  G90
+  G0 X{center_x} Y{center_y} Z10 F{travel_speed}
+  G0 Z{current_z_offset} F900
+  {action_respond_info("Nozzle is at current Z offset (%.3f mm)." % current_z_offset)}
+  {action_respond_info("Use G0 Z+0.1 or G0 Z-0.1 to adjust (e.g., 0.1 mm steps).")}
+  {action_respond_info("Use G0 Z+0.01 or G0 Z-0.01 for finer adjustments.")}
+  {action_respond_info("When satisfied, note the final Z position and run SAVE_Z_OFFSET Z=<value>.")}
+
+[gcode_macro CALIBRATE_SHAPER]
+description: Run input shaper calibration for X and Y axes
+gcode:
+  G28
+  TEST_RESONANCES AXIS=X FREQ_START=20 FREQ_END=60
+  TEST_RESONANCES AXIS=Y FREQ_START=20 FREQ_END=60
+  SAVE_CONFIG
+
+[gcode_macro BED_PID_TUNE]
+description: Run PID tuning for the heated bed
+gcode:
+  {% set TEMP = params.TEMP|default(60)|float %}
+  {% if TEMP >= 0 and TEMP <= 110 %}
+    M117 Running Bed PID Tuning at {TEMP}°C
+    G28
+    PID_CALIBRATE HEATER=heater_bed TARGET={TEMP}
+    M117 Bed PID Tuning Complete! Check terminal for values.
+    SAVE_CONFIG
+  {% else %}
+    M117 Error: TEMP must be between 0 and 110°C
+    {action_respond_info("Invalid temperature! Use TEMP between 0 and 110°C.")}
+  {% endif %}
+
+[gcode_macro NOZZLE_PID_TUNE]
+description: Run PID tuning for the extruder
+gcode:
+  {% set TEMP = params.TEMP|default(200)|float %}
+  {% set FAN_SPEED = params.FAN_SPEED|default(0)|float %}
+  {% if TEMP >= 0 and TEMP <= 330 %}
+    {% if FAN_SPEED >= 0 and FAN_SPEED <= 100 %}
+      M117 Running Nozzle PID Tuning at {TEMP}°C with fan at {FAN_SPEED}%
+      G28
+      SET_HEATER_FAN_SPEED HEATER_FAN=fan1 VALUE=0
+      SET_FAN_SPEED FAN=fan SPEED={FAN_SPEED}
+      PID_CALIBRATE HEATER=extruder TARGET={TEMP}
+      M117 Nozzle PID Tuning Complete! Check terminal for values.
+      SET_FAN_SPEED FAN=fan SPEED=0
+      SET_HEATER_FAN_SPEED HEATER_FAN=fan1 VALUE=255
+      SAVE_CONFIG
+    {% else %}
+      M117 Error: FAN_SPEED must be between 0 and 100%
+      {action_respond_info("Invalid fan speed! Use FAN_SPEED between 0 and 100%.")}
+    {% endif %}
+  {% else %}
+    M117 Error: TEMP must be between 0 and 330°C
+    {action_respond_info("Invalid temperature! Use TEMP between 0 and 330°C.")}
+  {% endif %}
+
+[gcode_macro SET_FAN_SPEED]
+description: Sets a manual fan speed with optional override persistence
+variable_fan_speed: 0
+variable_fan_override: False
+gcode:
+  {% set SPEED = params.SPEED|default(100)|float %}
+  {% set OVERRIDE = params.OVERRIDE|default(0)|int %}
+  {% if SPEED >= 0 and SPEED <= 100 %}
+    {% set FAN_SPEED = (SPEED / 100.0) * 255|int %}
+    M106 S{FAN_SPEED}
+    G4 P100
+    SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_speed VALUE={FAN_SPEED}
+    SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE={OVERRIDE > 0}
+    M117 Fan speed set to {SPEED}% {", override " + ("enabled" if OVERRIDE > 0 else "disabled")}
+  {% else %}
+    M117 Invalid speed! Use 0-100.
+  {% endif %}
+
+[gcode_macro UPDATE_FAN_SPEED]
+description: Internal macro to enforce fan speed override during print
+gcode:
+  {% if printer['gcode_macro SET_FAN_SPEED'].fan_override %}
+    M106 S{printer['gcode_macro SET_FAN_SPEED'].fan_speed}
+  {% endif %}
+
+[gcode_macro M420]
+description: Load the current mesh
+gcode:
+  BED_MESH_PROFILE LOAD=default
+
+[gcode_macro G29]
+description: Creates automated homing and bed mesh
+gcode:
+  G28
+  BED_MESH_CALIBRATE
+  # DATA_SAVE # Uncomment if you have a custom save macro
+
+[force_move]
+enable_force_move: True
+
+[temperature_sensor raspberry_pi]
+sensor_type: temperature_host
+
+[temperature_sensor mcu_temp]
+sensor_type: temperature_mcu
+
+# EXP1 / EXP2 (display) pins
+[board_pins]
+aliases:
+    EXP1_1=PC5, EXP1_3=PB1, EXP1_5=PE9, EXP1_7=PE11, EXP1_9=<GND>,
+    EXP1_2=PB0, EXP1_4=PE8, EXP1_6=PE10, EXP1_8=PE12, EXP1_10=<5V>,
+    EXP2_1=PA6, EXP2_3=PE7, EXP2_5=PB2, EXP2_7=PC4, EXP2_9=<GND>,
+    EXP2_2=PA5, EXP2_4=PA4, EXP2_6=PA7, EXP2_8=<RST>, EXP2_10=<NC>
+
+#*# <---------------------- SAVE_CONFIG ---------------------->
+#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated.
+#*#
+#*# [probe]
+#*# z_offset = 1.00
+#*#
+#*# [input_shaper]
+#*# shaper_type_x = ei
+#*# shaper_freq_x = 50.0
+#*# shaper_type_y = ei
+#*# shaper_freq_y = 40.2
+#*#
+#*# [extruder]
+#*# control = pid
+#*# pid_kp = 32.771
+#*# pid_ki = 3.361
+#*# pid_kd = 79.880
+#*#
+#*# [heater_bed]
+#*# pid_kp = 71.562
+#*# pid_ki = 0.778
+#*# pid_kd = 1645.031
+#*#
+#*# [bed_mesh default]
+#*# version = 1
+#*# points =
+#*# 0.562500, 0.352500, 0.207500, 0.155000, 0.067500, 0.062500, 0.075000, 0.110000, 0.145000, 0.232500, 0.382500
+#*# 0.532500, 0.307500, 0.150000, 0.090000, -0.015000, -0.010000, 0.007500, 0.060000, 0.132500, 0.247500, 0.410000
+#*# 0.487500, 0.250000, 0.080000, 0.010000, -0.105000, -0.105000, -0.072500, -0.010000, 0.047500, 0.182500, 0.375000
+#*# 0.507500, 0.282500, 0.107500, 0.050000, -0.077500, -0.072500, -0.030000, 0.055000, 0.112500, 0.247500, 0.450000
+#*# 0.522500, 0.295000, 0.110000, 0.040000, -0.075000, -0.077500, -0.060000, -0.012500, 0.065000, 0.197500, 0.372500
+#*# 0.490000, 0.285000, 0.115000, 0.052500, -0.050000, -0.040000, -0.015000, 0.027500, 0.092500, 0.222500, 0.395000
+#*# 0.435000, 0.257500, 0.097500, 0.052500, -0.030000, -0.010000, 0.005000, 0.032500, 0.082500, 0.190000, 0.342500
+#*# 0.375000, 0.225000, 0.082500, 0.072500, 0.002500, 0.010000, 0.027500, 0.055000, 0.095000, 0.187500, 0.327500
+#*# 0.417500, 0.250000, 0.117500, 0.107500, 0.030000, 0.042500, 0.052500, 0.090000, 0.120000, 0.212500, 0.347500
+#*# 0.430000, 0.267500, 0.160000, 0.160000, 0.085000, 0.112500, 0.125000, 0.142500, 0.180000, 0.250000, 0.362500
+#*# 0.427500, 0.292500, 0.180000, 0.165000, 0.112500, 0.142500, 0.152500, 0.170000, 0.222500, 0.290000, 0.417500
+#*# tension = 0.2
+#*# min_x = 10.0
+#*# algo = bicubic
+#*# y_count = 11
+#*# mesh_y_pps = 4
+#*# min_y = 21.0
+##* x_count = 11
+#*# max_y = 403.9
+#*# mesh_x_pps = 4
+#*# max_x = 397.0
