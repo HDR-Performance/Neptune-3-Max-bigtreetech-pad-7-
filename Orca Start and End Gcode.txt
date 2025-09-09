@@ -1,7 +1,3 @@
-: Start G-code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
-
-;test start g code
-
 M117 Initializing print
 
 ; Turn on LED at 90% brightness (optional)
@@ -18,12 +14,20 @@ SMART_PARK ; Park at Z=10 mm near objects
 M140 S[first_layer_bed_temperature] ; Start heating bed
 M190 S[first_layer_bed_temperature] ; Wait for bed temp
 
-; Heat hotend and wait
+; KAMP adaptive meshing setup and execution (nozzle still cold to prevent oozing)
+BED_MESH_CALIBRATE ADAPTIVE=1 ; Adaptive mesh within print area (e.g., 33,16 to 397,415)
+
+; Set slower speed for Smart Park (e.g., 50 mm/s)
+SET_VELOCITY_LIMIT VELOCITY=50 ; Set movement speed to 50 mm/s
+; Smart Park again after meshing
+SMART_PARK ; Park at Z=10 mm near objects
+
+; Reset speed to default (optional, if printer has a configured default)
+SET_VELOCITY_LIMIT VELOCITY=100 ; Reset to typical default speed (adjust as needed)
+
+; Heat hotend and wait (now in parked position)
 M104 S[first_layer_temperature] ; Start heating extruder
 M109 S[first_layer_temperature] ; Wait for extruder temp
-
-; KAMP adaptive meshing setup and execution
-BED_MESH_CALIBRATE ADAPTIVE=1 ; Adaptive mesh within print area (e.g., 33,16 to 397,415)
 
 ; Adaptive purge
 LINE_PURGE ; Purge 30 mm near print area
@@ -56,6 +60,7 @@ SET_LED LED=LED_Light WHITE=0 SYNC=0 TRANSMIT=1
 ; SCREEN_WAKE
 
 M117 Print complete!
+
 
 
 
