@@ -141,30 +141,40 @@ M117 Print complete!
 
 ### Start G-code for Orca Slicer:
 ```
+; Orca Start G-Code
+
+
 M117 Initializing print
 
+; Turn on LED at 90% brightness (optional)
 SET_LED LED=LED_Light WHITE=0.90 SYNC=0 TRANSMIT=1
 
-M140 S[first_layer_bed_temperature]
-M104 S[first_layer_temperature]
+; Home all axes
+G28 ; Home X, Y, Z
+G90 ; Set absolute positioning
+G92 E0 ; Reset extruder position
 
-G28
-G90
-G92 E0
+; Smart Park near print area
+SMART_PARK ; Park at Z=10 mm near objects
+; Heat bed and wait
+M140 S[first_layer_bed_temperature] ; Start heating bed
+M190 S[first_layer_bed_temperature] ; Wait for bed temp
 
-M190 S[first_layer_bed_temperature]
-M109 S[first_layer_temperature]
+; KAMP adaptive meshing setup and execution (nozzle still cold to prevent oozing)
+BED_MESH_CALIBRATE ADAPTIVE=1 ; Adaptive mesh within print area (e.g., 33,16 to 397,415)
 
-SETUP_KAMP_MESHING DISPLAY_PARAMETERS=1 LED_ENABLE=1 FUZZ_ENABLE=0 ADAPTIVE_ENABLE=1
-BED_MESH_CALIBRATE ADAPTIVE=1
+; Smart Park again after meshing
+SMART_PARK ; Park at Z=10 mm near objects
 
-G0 X50 Y50 Z10 F12000
-SMART_PARK
-LINE_PURGE
+; Heat hotend and wait (now in parked position)
+M104 S[first_layer_temperature] ; Start heating extruder
+M109 S[first_layer_temperature] ; Wait for extruder temp
 
-G90
-G92 E0
-G0 X210 Y210 Z0.2 F12000
+; Adaptive purge
+LINE_PURGE ; Purge 30 mm near print area
+
+; Reset extruder position for print
+G92 E0 ; Reset extruder position post-purge
 M117 Printing...
 ```
 
