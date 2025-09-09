@@ -1,3 +1,6 @@
+; Orca Start G-Code
+
+
 M117 Initializing print
 
 ; Turn on LED at 90% brightness (optional)
@@ -36,7 +39,7 @@ LINE_PURGE ; Purge 30 mm near print area
 G92 E0 ; Reset extruder position post-purge
 M117 Printing...
 
-; End G-code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
+; End G-Code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
 M117 Finishing print
 
 ; Turn off heaters
@@ -60,6 +63,7 @@ SET_LED LED=LED_Light WHITE=0 SYNC=0 TRANSMIT=1
 ; SCREEN_WAKE
 
 M117 Print complete!
+
 
 
 
