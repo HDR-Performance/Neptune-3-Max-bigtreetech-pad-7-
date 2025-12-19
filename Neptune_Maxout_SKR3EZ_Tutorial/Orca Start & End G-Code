@@ -1,0 +1,29 @@
+
+
+
+START_PRINT BED_TEMP=[first_layer_bed_temperature] EXTRUDER_TEMP=[first_layer_temperature]
+
+; End G-code for Neptune 3 Max with Klipper and KAMP in Orca Slicer
+M117 Finishing print
+
+; Turn off heaters
+M104 S0                        ; Turn off extruder
+M140 S0                        ; Turn off bed
+
+; Lift Z and move to present print at Y=313
+G91                            ; Relative positioning
+G1 Z10 F600                    ; Lift Z by 10 mm
+G90                            ; Absolute positioning
+G0 X0 Y313 F12000              ; Move to X=0, Y=313 (present print)
+
+; Disable motors and clear mesh
+M84                            ; Disable steppers
+BED_MESH_CLEAR                 ; Clear adaptive mesh for next print
+
+; Turn off LED
+SET_LED LED=LED_Light WHITE=0 SYNC=0 TRANSMIT=1
+
+; Optional: Wake screen (uncomment if using SCREEN_WAKE)
+; SCREEN_WAKE
+
+M117 Print complete!
