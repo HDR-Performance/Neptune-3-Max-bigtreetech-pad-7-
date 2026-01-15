@@ -1,56 +1,46 @@
-# For the ZNP Robin Nano DW v2.2 board:
-#   - Compile with the processor model STM32F401.
-#   - Select the 32KiB bootloader,
-#   - Select (Serial (on # USART1 PA10/PA9) for the communication interface.
-#   - Select (Serial (on # USART2 PA3/PA2) if you want to use the serial UART pins on J17 (wifi section)
-# Note that the "make flash" command does not work with ZNP Robin boards. After running "make", run the following command:
-# cp out/klipper.bin out/ZNP_ROBIN_NANO.bin
-#
-# Copy the file out/ZNP_ROBIN_NANO.bin to an SD card and then restart the printer with that SD card.
-# See docs/Config_Reference.md for a description of parameters.
+# Adapted Klipper printer.cfg for Elegoo Neptune 3 Max with STOCK ZNP Robin Nano DW v2.2 board
 
 [include KAMP_Settings.cfg]
-
 [include timelapse.cfg]
-
 [include mainsail.cfg]
-
 [include Line_Purge.cfg]
-
 [include Smart_Park.cfg]
-
 [include Adaptive_Meshing.cfg]
-
-[exclude_object] #comment out for Sonic pad
+[exclude_object]
 
 [virtual_sdcard]
-#path: ~/gcode_files
 
 [pause_resume]
-
 [display_status]
 
 [gcode_macro START_PRINT]
 gcode:
-   SET_LED LED=LED_Light WHITE=0.25 SYNC=0 TRANSMIT=1 ; 25 Percent Led Light
-  {% set BED_TEMP = params.BED_TEMP|default(60)|float %}
-  {% set EXTRUDER_TEMP = params.EXTRUDER_TEMP|default(200)|float %}
-  M140 S{BED_TEMP}
-  M104 S{EXTRUDER_TEMP}
-  G28
-  M190 S{BED_TEMP}
-  M109 S{EXTRUDER_TEMP}
-  
-   SETUP_KAMP_MESHING DISPLAY_PARAMETERS=1 LED_ENABLE=1 FUZZ_ENABLE=0 ADAPTIVE_ENABLE=1 ; Setup KAMP
-   BED_MESH_CALIBRATE ADAPTIVE=1 ; Calibrate bed mesh
-   Smart_Park
-   LINE_PURGE
+    {% set BED_TEMP = params.BED_TEMP|default(60)|float %}
+    {% set EXTRUDER_TEMP = params.EXTRUDER_TEMP|default(200)|float %}
+    SET_LED LED=LED_Light WHITE=0.90 SYNC=0 TRANSMIT=1
+    SAVE_GCODE_STATE NAME=START_STATE
+    SET_VELOCITY_LIMIT VELOCITY=2400 ACCEL=800
+    G28 X Y Z
+    SMART_PARK
+    M140 S{BED_TEMP}
+    M190 S{BED_TEMP}
+    M104 S{EXTRUDER_TEMP}
+    M109 S{EXTRUDER_TEMP}
+    SET_VELOCITY_LIMIT Z=2400 ACCEL=400
+    SETUP_KAMP_MESHING DISPLAY_PARAMETERS=1 LED_ENABLE=1 FUZZ_ENABLE=0 ADAPTIVE_ENABLE=1
+    BED_MESH_CALIBRATE ADAPTIVE=1
+    SET_VELOCITY_LIMIT VELOCITY=3600 ACCEL=1000
+    SMART_PARK
+    LINE_PURGE
+    G92 E0
+    SET_VELOCITY_LIMIT VELOCITY=30000 Z=1500 ACCEL=4000
+    RESTORE_GCODE_STATE NAME=START_STATE
+    M117 Printing...
 
 [gcode_macro CANCEL_PRINT]
-description: Cancels the print, parks the toolhead like PAUSE, and shuts down like END_PRINT
+description: Cancels the print safely
 gcode:
     M117 Cancelling print
-    # Park the toolhead like PAUSE
     {% set x_park = printer.toolhead.axis_maximum.x|float - 5.0 %}
     {% set y_park = printer.toolhead.axis_maximum.y|float - 5.0 %}
     {% set max_z = printer.toolhead.axis_maximum.z|float %}
@@ -60,39 +50,32 @@ gcode:
     {% else %}
         {% set z_safe = max_z - act_z %}
     {% endif %}
-    G91  ; Relative positioning
+    G91
     {% if "xyz" in printer.toolhead.homed_axes %}
-        G1 Z{z_safe} F900  ; Lift Z like PAUSE
-        G90  ; Absolute positioning
-        G1 X{x_park} Y{y_park} F6000  ; Move to park position like PAUSE
-    {% else %}
-        {action_respond_info("Printer not homed, skipping park")}
+        G1 Z{z_safe} F900
+        G90
+        G1 X{x_park} Y{y_park} F6000
     {% endif %}
-    # Shut down like END_PRINT
-    M104 S0  ; Turn off extruder heater
-    M140 S0  ; Turn off bed heater
-    M106 S0  ; Turn off fan and reset override
-    SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE="False"  ; Disable fan override
-    SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1  ; Turn off LED
-    M84      ; Disable motors
-    BED_MESH_CLEAR  ; Clear adaptive mesh
-    CLEAR_PAUSE     ; Clear any pause state
-    SDCARD_RESET_FILE  ; Reset SD print file (if using SD)
+    M104 S0
+    M140 S0
+    M106 S0
+    SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE="False"
+    SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1
+    M84
+    BED_MESH_CLEAR
+    CLEAR_PAUSE
+    {% if printer.virtual_sdcard.is_active %}
+        SDCARD_RESET_FILE
+    {% endif %}
     M117 Print cancelled
-    
+
 [gcode_macro PAUSE]
-description: Pause the actual running print
 rename_existing: PAUSE_BASE
-# change this if you need more or less extrusion
 variable_extrude: 1.0
 gcode:
-    ##### read E from pause macro #####
     {% set E = printer["gcode_macro PAUSE"].extrude|float %}
-    ##### set park positon for x and y #####
-    # default is your max posion from your printer.cfg
     {% set x_park = printer.toolhead.axis_maximum.x|float - 5.0 %}
     {% set y_park = printer.toolhead.axis_maximum.y|float - 5.0 %}
-    ##### calculate save lift position #####
     {% set max_z = printer.toolhead.axis_maximum.z|float %}
     {% set act_z = printer.toolhead.position.z|float %}
     {% if act_z < (max_z - 2.0) %}
@@ -100,7 +83,6 @@ gcode:
     {% else %}
         {% set z_safe = max_z - act_z %}
     {% endif %}
-    ##### end of definitions #####
     PAUSE_BASE
     G91
     {% if printer.extruder.can_extrude|lower == 'true' %}
@@ -114,101 +96,83 @@ gcode:
       G1 X{x_park} Y{y_park} F6000
     {% else %}
       {action_respond_info("Printer not homed")}
-    {% endif %} 
-    
+    {% endif %}
+
 [gcode_macro RESUME]
-description: Resume the actual running print
 rename_existing: RESUME_BASE
 gcode:
-    ##### read E from pause macro #####
     {% set E = printer["gcode_macro PAUSE"].extrude|float %}
-    #### get VELOCITY parameter if specified ####
     {% if 'VELOCITY' in params|upper %}
-      {% set get_params = ('VELOCITY=' + params.VELOCITY)  %}
-    {%else %}
+      {% set get_params = ('VELOCITY=' + params.VELOCITY) %}
+    {% else %}
       {% set get_params = "" %}
     {% endif %}
-    ##### end of definitions #####
     {% if printer.extruder.can_extrude|lower == 'true' %}
       G91
       G1 E{E} F2100
     {% else %}
       {action_respond_info("Extruder not hot enough")}
-    {% endif %}  
+    {% endif %}
     RESUME_BASE {get_params}
 
 [gcode_macro END_PRINT]
 gcode:
-   M104 S0 ; Turn off extruder heater
-   M140 S0 ; Turn off bed heater
-   M106 S0 ; Turn off fan and reset override
-   SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE="False"  ; Disable fan override
-   G91 ; Relative positioning
-   G1 Z10 F300 ; Move Z axis up 10mm to avoid collision
-   G90 ; Absolute positioning
-   G1 Y200 F3000 ; Move Y axis forward to deliver the print
-   SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1
-   M84 ; Disable motors
-    
-[gcode_macro MANUAL_BED_TRAMMING]
-description: Home and measure for manual leveling adjustments
+    M104 S0
+    M140 S0
+    M106 S0
+    SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE="False"
+    G91
+    G1 Z10 F300
+    G90
+    G1 Y200 F3000
+    SET_LED LED=LED_Light WHITE=0.0 SYNC=0 TRANSMIT=1
+    M84
+
+[homing_override]
 gcode:
-  G28
-  SCREWS_TILT_CALCULATE
-  G90
-  G1 F3000 X213 Y213 Z25 
+    G28 X Y
+    G90
+    G0 X241 Y193 F6000
+    G28 Z
+    G91
+    G0 Z10 F900
+    G90
+set_position_z: 0
+
+[gcode_macro MANUAL_BED_TRAMMING]
+gcode:
+    G28
+    SCREWS_TILT_CALCULATE
+    G90
+    G1 F3000 X213 Y213 Z25
 
 [gcode_macro MANUAL_Z_OFFSET_ADJUST]
-description: Manually adjust Z offset by moving to current offset and allowing incremental changes
 gcode:
-    # Get current Z offset from config (fallback to 0 if undefined)
     {% set current_z_offset = printer.configfile.config.probe.z_offset | float | default(0.0) %}
-    {% set center_x = printer.toolhead.axis_maximum.x / 2 | float %}  ; Center of X (215 mm)
-    {% set center_y = printer.toolhead.axis_maximum.y / 2 | float %}  ; Center of Y (215 mm)
-    {% set travel_speed = printer.toolhead.max_velocity * 60 | float %}  ; Travel speed (15000 mm/min)
-
-    # Display current Z offset
+    {% set center_x = printer.toolhead.axis_maximum.x / 2 | float %}
+    {% set center_y = printer.toolhead.axis_maximum.y / 2 | float %}
+    {% set travel_speed = printer.toolhead.max_velocity * 60 | float %}
     {action_respond_info("Current Z offset: %.3f mm" % current_z_offset)}
-
-    # Auto-home all axes
     G28
     {action_respond_info("Printer homed.")}
-
-    # Move to center of bed at current Z offset
-    G90  ; Absolute positioning
-    G0 X{center_x} Y{center_y} Z10 F{travel_speed}  ; Start at Z:10 mm for safety
-    G0 Z{current_z_offset} F900  ; Move to current Z offset at slower speed (15 mm/s)
-
-    # Instructions for adjustment
-    {action_respond_info("Nozzle is at current Z offset (%.3f mm)." % current_z_offset)}
-    {action_respond_info("Use G0 Z+0.1 or G0 Z-0.1 to adjust (e.g., 0.1 mm steps).")}
-    {action_respond_info("Use G0 Z+0.01 or G0 Z-0.01 for finer adjustments.")}
-    {action_respond_info("When satisfied, note the final Z position and run SAVE_Z_OFFSET Z=<value>.")}
-
-[mcu]
-serial: /dev/ttyUSB0
-restart_method: command
+    G90
+    G0 X{center_x} Y{center_y} Z10 F{travel_speed}
+    G0 Z{current_z_offset} F900
+    {action_respond_info("Nozzle at current Z offset (%.3f mm)." % current_z_offset)}
+    {action_respond_info("Use G0 Z+0.1 or G0 Z-0.1 to adjust. Finer: ±0.01. Then SAVE_Z_OFFSET Z=<value>.")}
 
 [led LED_Light]
 white_pin: PB9
-initial_white: 1.0
-
-#[output_pin LED_Light] #toggle for LED Light - use this instead of [LED] for sonic pad
-#Pin: PB9
-#cycle_time: 0.01
-#pwm: true
-#value: 1
+shutdown_white: 0.0
+cycle_time: 0.010
 
 [printer]
 kinematics: cartesian
-max_velocity: 250
-max_accel: 300
-max_z_velocity: 15
-max_z_accel: 100
+max_velocity: 300
+max_accel: 4000
+max_z_velocity: 20
+max_z_accel: 150
 square_corner_velocity: 5
-# Use those higher values just to configure Input Shaper 
-#max_accel: 10000
-#max_accel_to_decel: 10000
 
 [stepper_x]
 step_pin: !PC12
@@ -232,7 +196,7 @@ endstop_pin: PB8
 position_endstop: -6
 position_min: -6
 position_max: 430
-homing_speed: 50
+homing_speed: 40
 
 [stepper_z]
 step_pin: PC7
@@ -240,9 +204,9 @@ dir_pin: !PC9
 enable_pin: !PC8
 rotation_distance: 8.0
 microsteps: 16
-position_min: -0.5         ; Allow Z down to -0.5 mm (was 0)
+position_min: -4.0
 position_max: 506
-endstop_pin: probe:z_virtual_endstop # Use Z- as endstop
+endstop_pin: probe:z_virtual_endstop
 homing_speed: 10
 homing_retract_speed: 15
 
@@ -259,19 +223,15 @@ heater_pin: PA6
 sensor_type: EPCOS 100K B57560G104F
 sensor_pin: PC1
 min_temp: 0
-max_temp: 290
-# Calibrate E-Steps https://www.klipper3d.org/Rotation_Distance.html#calibrating-rotation_distance-on-extruders
+max_temp: 320
 rotation_distance: 7.65
-# Calibrate PID: https://www.klipper3d.org/Config_checks.html#calibrate-pid-settings
-#  - Example: PID_CALIBRATE HEATER=extruder TARGET=200
-control = pid
-pid_kp = 23.847
-pid_ki = 1.325
-pid_kd = 107.311
-# Calibrate PA: https://www.klipper3d.org/Pressure_Advance.html
-pressure_advance = 0.12
+pressure_advance: 0.056
+control: pid
+pid_kp: 23.847
+pid_ki: 1.325
+pid_kd: 107.311
 
-[firmware_retraction] #  Added On
+[firmware_retraction]
 retract_length: 0.5
 retract_speed: 35
 unretract_extra_length: 0
@@ -281,15 +241,13 @@ unretract_speed: 35
 heater_pin: PA5
 sensor_type: EPCOS 100K B57560G104F
 sensor_pin: PC0
-pwm_cycle_time: 0.020 # set to 0.0166 if your grid runs on 60Hz to fix lights flickering
+pwm_cycle_time: 0.020
 max_temp: 110
 min_temp: 0
-# Calibrate PID: https://www.klipper3d.org/Config_checks.html#calibrate-pid-settings
-#  - Example: PID_CALIBRATE HEATER=heater_bed TARGET=60
-control = pid
-pid_kp = 71.562
-pid_ki = 0.778
-pid_kd = 1645.031
+control: pid
+pid_kp: 71.562
+pid_ki: 0.778
+pid_kd: 1645.031
 
 [heater_fan hotend_fan]
 pin: PB0
@@ -301,14 +259,15 @@ pin: PA7
 
 [gcode_macro SET_FAN_SPEED]
 description: Sets a manual fan speed with optional override persistence
-variable_fan_speed: 0     ; Stored fan speed value (0-255)
-variable_fan_override: False  ; Whether to override G-code fan speeds
+variable_fan_speed: 0
+variable_fan_override: False
 gcode:
-    {% set SPEED = params.SPEED|default(100)|float %}  ; Speed in percentage (0-100)
-    {% set OVERRIDE = params.OVERRIDE|default(0)|int %}  ; 1 to enable override, 0 to disable
+    {% set SPEED = params.SPEED|default(100)|float %}
+    {% set OVERRIDE = params.OVERRIDE|default(0)|int %}
     {% if SPEED >= 0 and SPEED <= 100 %}
-        {% set FAN_SPEED = (SPEED / 100.0) * 255|int %}  ; Convert to 0-255 range
-        M106 S{FAN_SPEED}                                ; Set fan speed immediately
+        {% set FAN_SPEED = (SPEED / 100.0) * 255|int %}
+        M106 S{FAN_SPEED}
+        G4 P100
         SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_speed VALUE={FAN_SPEED}
         SET_GCODE_VARIABLE MACRO=SET_FAN_SPEED VARIABLE=fan_override VALUE={OVERRIDE > 0}
         M117 Fan speed set to {SPEED}% {", override " + ("enabled" if OVERRIDE > 0 else "disabled")}
@@ -317,7 +276,6 @@ gcode:
     {% endif %}
 
 [gcode_macro UPDATE_FAN_SPEED]
-description: Internal macro to enforce fan speed override during print
 gcode:
     {% if printer['gcode_macro SET_FAN_SPEED'].fan_override %}
         M106 S{printer['gcode_macro SET_FAN_SPEED'].fan_speed}
@@ -326,70 +284,48 @@ gcode:
 [force_move]
 enable_force_move: True
 
-[safe_z_home]
-speed: 100.0
-home_xy_position: 241, 193
-z_hop: 10
-
 [probe]
 pin: ^PA8
-speed: 10 # Adjusted from 5 to 10 mm/s
-lift_speed: 25  # Adjusted from 15 to 25 mm/s
+speed: 15
+lift_speed: 40
 samples: 3
 x_offset: -28.5
 y_offset: 22
-# Calibrate probe: https://www.klipper3d.org/Bed_Level.html
-# - Example: PROBE_CALIBRATE, then adjust with TESTZ Z=+/-X
-# z_offset = 0.620
 
 [filament_switch_sensor filament_sensor]
 pause_on_runout: true
 switch_pin: PB4
 
 [bed_mesh]
-probe_count: 11,9  # Adjusted from 9,7 to 11,9
-algorithm = bicubic
-speed: 350 # Adjusted from 200 to 350 mm/s
+probe_count: 11,9
+algorithm: bicubic
+speed: 350
 horizontal_move_z: 10
 mesh_min: 33, 16
 mesh_max: 397, 415
 fade_start: 1.0
 fade_end: 10.0
 
+[safe_z_home]
+home_xy_position: 241, 193
+speed: 100.0
+z_hop: 10
+
 [input_shaper]
-# Calibrate IS: https://www.klipper3d.org/Resonance_Compensation.html
-#shaper_type_x = ei
-#shaper_freq_x = 62.0
-#shaper_type_y = zv
-#shaper_freq_y = 31.6
-#Slower but slightly less vibration option (change max accel to 2800)
-#shaper_type_y = mzv
-#shaper_freq_y = 31.0
-
-[temperature_sensor raspberry_pi]
-sensor_type: temperature_host
-#min_temp: 10
-#max_temp: 105
-
-[temperature_sensor mcu_temp]
-sensor_type: temperature_mcu
-sensor_temperature1: 25
-sensor_adc1: 0.210317
-#min_temp: 0
-#max_temp: 105
+shaper_type_y: ei
+shaper_freq_y: 38.0
+shaper_type_x: 3hump_ei
+shaper_freq_x: 68.4
 
 [gcode_macro M420]
-description: Load the current mesh
 gcode:
-  BED_MESH_PROFILE LOAD=default
-  
+    BED_MESH_PROFILE LOAD=default
+
 [gcode_macro G29]
-description: creates automated homing and bed mesh
 gcode:
-  G28
-  BED_MESH_CALIBRATE
-  DATA_SAVE
-  
+    G28
+    BED_MESH_CALIBRATE
+
 [screws_tilt_adjust]
 screw_thread: CW-M3
 speed: 200
@@ -408,43 +344,31 @@ screw6_name: left middle screw
 screw7: 66, 370.5
 screw7_name: left back screw
 
+[mcu]
+serial: /dev/ttyUSB0
+restart_method: command
+
 [mcu CB1]
 serial: /tmp/klipper_host_mcu
 
 [adxl345]
 cs_pin: CB1:None
 spi_bus: spidev1.1
-axes_map: z,y,-x # Modify according to the actual orientation of the ADXL345 installed on the printer.
+axes_map: z,y,-x
+
 [resonance_tester]
 accel_chip: adxl345
 probe_points:
-    100, 100, 20 # An Example
+    215, 215, 20
 
 #*# <---------------------- SAVE_CONFIG ---------------------->
 #*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated.
 #*#
 #*# [probe]
-#*# z_offset = 0.675
+#*# z_offset = 0.665
 #*#
 #*# [input_shaper]
 #*# shaper_type_y = ei
 #*# shaper_freq_y = 38.0
 #*# shaper_type_x = 3hump_ei
 #*# shaper_freq_x = 68.4
-#*#
-#*# [bed_mesh default]
-#*# version = 1
-#*# points =
-#*# 	  0.124167, 0.103333, 0.053333
-#*# 	  0.141667, 0.123333, 0.069167
-#*# 	  0.131667, 0.128333, 0.082500
-#*# x_count = 3
-#*# y_count = 3
-#*# mesh_x_pps = 2
-#*# mesh_y_pps = 2
-#*# algo = lagrange
-#*# tension = 0.2
-#*# min_x = 195.0
-#*# max_x = 225.0
-#*# min_y = 195.0
-#*# max_y = 225.0
